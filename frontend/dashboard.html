@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiveStream Moderation Engine — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d14; --surface: #13131f; --surface2: #1a1a2e;
+  --border: rgba(255,255,255,0.07);
+  --purple: #7c3aed; --purple2: #8b5cf6; --purple3: #a78bfa;
+  --purple-dim: rgba(124,58,237,0.12);
+  --text: #f1f0ff; --text2: #8b8aaa; --text3: #3f3f5a;
+  --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --cyan: #06b6d4;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 3px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,20,0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); padding: 0 40px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  animation: fadeDown 0.6s ease both;
+}
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--purple), var(--purple2));
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(124,58,237,0.4); flex-shrink: 0;
+}
+.logo-icon svg { width: 18px; height: 18px; }
+.logo-name { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+.logo-name span { color: var(--purple3); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.live-badge {
+  display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 20px;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+  font-size: 11px; font-weight: 700; color: var(--green); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+.user-chip {
+  display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px;
+  border-radius: 20px; border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; transition: border-color 0.2s;
+}
+.user-chip:hover { border-color: var(--purple3); }
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: white;
+}
+.user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.logout-btn {
+  padding: 7px 16px; border: 1px solid var(--border); border-radius: 8px;
+  background: transparent; color: var(--text2); font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+.logout-btn:hover { border-color: var(--purple3); color: var(--purple3); }
+
+.page { max-width: 1280px; margin: 0 auto; padding: 40px 40px 80px; }
+.section-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; margin-bottom: 6px; }
+.section-sub { font-size: 13px; color: var(--text2); font-weight: 400; margin-bottom: 28px; }
+
+.about-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px; margin-bottom: 40px; position: relative; overflow: hidden; animation: fadeUp 0.6s 0.2s ease both; }
+.about-section::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--purple), var(--purple3)); border-radius: 4px 0 0 4px; }
+.about-glow { position: absolute; top: -60px; right: -60px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(124,58,237,0.08), transparent 65%); pointer-events: none; }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.about-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--purple3); margin-bottom: 12px; opacity: 0.8; }
+.about-title { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 16px; }
+.about-title em { font-style: italic; color: var(--purple3); }
+.about-desc { font-size: 14px; color: var(--text2); line-height: 1.8; font-weight: 400; margin-bottom: 20px; }
+.about-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; border: 1px solid; }
+.tag-purple { color: var(--purple3); border-color: rgba(167,139,250,0.3); background: rgba(124,58,237,0.08); }
+.tag-green  { color: var(--green);   border-color: rgba(34,197,94,0.3);   background: rgba(34,197,94,0.07); }
+.tag-cyan   { color: var(--cyan);    border-color: rgba(6,182,212,0.3);   background: rgba(6,182,212,0.07); }
+.tag-amber  { color: var(--amber);   border-color: rgba(245,158,11,0.3);  background: rgba(245,158,11,0.07); }
+.about-features { display: flex; flex-direction: column; gap: 14px; }
+.feature-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); transition: border-color 0.2s, background 0.2s; }
+.feature-row:hover { border-color: rgba(124,58,237,0.25); background: var(--purple-dim); }
+.feature-icon { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.feature-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.feature-desc  { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+.platforms-section { margin-bottom: 40px; animation: fadeUp 0.6s 0.3s ease both; }
+.platforms-grid { display: grid; gap: 14px; }
+.platform-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s; text-decoration: none;
+}
+.platform-card:hover { transform: translateY(-4px); border-color: var(--p-color); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.platform-logo { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.platform-logo svg { width: 28px; height: 28px; }
+.platform-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
+.platform-status { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.p-status-dot { width: 5px; height: 5px; border-radius: 50%; animation: livePulse 1.8s ease-in-out infinite; }
+.status-live { color: var(--green); }
+.status-live .p-status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.platform-btn { width: 100%; padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text2); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+
+.reviews-section { animation: fadeUp 0.6s 0.5s ease both; }
+.review-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; transition: border-color 0.25s, transform 0.2s; }
+.review-card:hover { border-color: rgba(124,58,237,0.3); transform: translateY(-2px); }
+.review-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.reviewer-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; }
+.reviewer-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.reviewer-role { font-size: 11px; color: var(--text2); }
+.review-stars { display: flex; gap: 2px; margin-bottom: 10px; }
+.review-star { font-size: 13px; }
+.review-star.filled { color: var(--amber); }
+.review-text { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.review-date { font-size: 11px; color: var(--text3); margin-top: 12px; }
+.add-review-form { background: var(--surface); border: 1px solid rgba(124,58,237,0.2); border-radius: 14px; padding: 28px; margin-top: 24px; display: none; }
+.add-review-form.open { display: block; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--purple3); }
+.form-input, .form-textarea { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; outline: none; transition: border-color 0.25s; }
+.form-input:focus, .form-textarea:focus { border-color: var(--purple3); }
+.form-textarea { resize: vertical; min-height: 90px; }
+.star-picker { display: flex; gap: 6px; }
+.star-pick { font-size: 22px; cursor: pointer; color: var(--text3); transition: color 0.15s, transform 0.15s; }
+.star-pick:hover, .star-pick.selected { color: var(--amber); }
+.star-pick:hover { transform: scale(1.2); }
+.submit-review-btn { padding: 12px 28px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--purple), var(--purple2)); color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(124,58,237,0.35); transition: transform 0.15s, box-shadow 0.2s; margin-top: 4px; }
+.submit-review-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(124,58,237,0.45); }
+
+/* EXTENSION BANNER */
+.ext-banner { margin-bottom: 40px; border-radius: 18px; background: linear-gradient(135deg, #2e1065 0%, #4c1d95 40%, #5b21b6 100%); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; gap: 32px; position: relative; overflow: hidden; border: 1px solid rgba(167,139,250,0.2); animation: fadeUp 0.6s 0.05s ease both; }
+.ext-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(196,181,253,0.8); margin-bottom: 14px; }
+.ext-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--purple3); }
+.ext-title { font-size: 26px; font-weight: 800; color: white; line-height: 1.2; letter-spacing: -0.5px; margin-bottom: 12px; }
+.ext-title span { color: var(--purple3); }
+.ext-desc { font-size: 14px; color: rgba(196,181,253,0.75); line-height: 1.7; max-width: 480px; margin-bottom: 24px; }
+.ext-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.ext-pill { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(167,139,250,0.3); background: rgba(124,58,237,0.2); font-size: 11.5px; font-weight: 600; color: var(--purple3); }
+.ext-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
+.ext-right { display: flex; flex-direction: column; align-items: center; gap: 20px; flex-shrink: 0; }
+.ext-icon-wrap { width: 100px; height: 100px; background: rgba(124,58,237,0.25); border-radius: 22px; border: 1px solid rgba(167,139,250,0.3); display: flex; align-items: center; justify-content: center; }
+.ext-icon-wrap svg { width: 56px; height: 56px; }
+.ext-btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.ext-btn-primary { display: flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; background: white; color: #5b21b6; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 800; text-decoration: none; }
+.ext-btn-primary svg { width: 16px; height: 16px; }
+.ext-version { font-size: 11px; color: rgba(167,139,250,0.5); }
+
+.footer { border-top: 1px solid var(--border); padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; }
+.footer-copy { font-size: 12px; color: var(--text3); }
+.footer-links { display: flex; gap: 20px; }
+.footer-link { font-size: 12px; color: var(--text2); text-decoration: none; }
+.footer-link:hover { color: var(--purple3); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="3" stroke="white" stroke-width="1.4"/><path d="M2 8h20" stroke="white" stroke-width="1.4"/><circle cx="5.5" cy="6" r="1" fill="white" opacity="0.7"/><circle cx="8.5" cy="6" r="1" fill="white" opacity="0.7"/><circle cx="11.5" cy="6" r="1" fill="white" opacity="0.7"/><path d="M8 14 C8 12.5 9 12 10 12.5 C10 11 11 10.5 12 11.5 C13 11 14 12 13 13 C14 13.5 14 15 12.5 15 L12.5 16 L9 16 L9 15 C7.5 15 7.5 14 8 14Z" fill="white" opacity="0.9"/></svg>
+    </div>
+    <div class="logo-name">Comment <span>Guard</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div>Engine Active</div>
+    <div class="user-chip">
+      <div class="user-avatar" id="dash-avatar">U</div>
+      <div class="user-name" id="dash-username">User</div>
+    </div>
+    <button class="logout-btn" onclick="window.location.href='index.html'">Log Out</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- EXTENSION BANNER -->
+  <div class="ext-banner">
+    <div class="ext-left">
+      <div class="ext-eyebrow"><div class="ext-eyebrow-dot"></div>Browser Extension · Chrome Web Store</div>
+      <div class="ext-title">Download the <span>Comment Guard</span><br>Chrome Extension</div>
+      <div class="ext-desc">Install once and get real-time toxic comment detection on YouTube, Twitter/X, Instagram, Reddit, and Facebook — powered by DistilBERT, running 100% in your browser.</div>
+      <div class="ext-pills">
+        <div class="ext-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Privacy-First</div>
+        <div class="ext-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>&lt;12ms Latency</div>
+        <div class="ext-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>98% Accuracy</div>
+        <div class="ext-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>DistilBERT NLP</div>
+      </div>
+    </div>
+    <div class="ext-right">
+      <div class="ext-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="3" fill="rgba(167,139,250,0.2)" stroke="rgba(196,181,253,0.5)" stroke-width="1.2"/><path d="M3 7h18" stroke="rgba(196,181,253,0.4)" stroke-width="1.2"/><circle cx="6" cy="5" r="0.8" fill="rgba(255,255,255,0.5)"/><circle cx="8.5" cy="5" r="0.8" fill="rgba(255,255,255,0.5)"/><path d="M9 12.5C9 11.2 10 10.8 11 11.2C11 10.1 12 9.7 13 10.5C14 10.2 15 11 14 12C15 12.5 14.8 14 13.5 14L13.5 15L10 15L10 14C8.5 14 8.5 13 9 12.5Z" fill="#a78bfa"/><rect x="17" y="9" width="4" height="4" rx="1" fill="#8b5cf6" opacity="0.9"/><path d="M18 11h2M19 10v2" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ext-btn-group">
+        <a class="ext-btn-primary" href="extension.zip" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Add to Chrome — Free
+        </a>
+        <div class="ext-version">v2.1.4 · Manifest V3 · Chrome 100+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLATFORMS -->
+  <div class="platforms-section">
+    <div class="section-title">Supported Platforms</div>
+    <div class="section-sub">Click to open the platform in a new tab with moderation active</div>
+    <div class="platforms-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <a class="platform-card" href="https://youtube.com" target="_blank" style="--p-color:#ff0000">
+        <div class="platform-logo" style="background:rgba(255,0,0,0.1)">
+          <svg viewBox="0 0 24 24" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </div>
+        <div class="platform-name">YouTube</div>
+        <div class="platform-status status-live"><div class="p-status-dot"></div>Live</div>
+        <button class="platform-btn" onclick="event.preventDefault(); window.open('https://youtube.com','_blank')">Open Live →</button>
+      </a>
+      <a class="platform-card" href="https://twitter.com" target="_blank" style="--p-color:#1da1f2">
+        <div class="platform-logo" style="background:rgba(29,161,242,0.1)">
+          <svg viewBox="0 0 24 24" fill="#1da1f2"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+        <div class="platform-name">Twitter / X</div>
+        <div class="platform-status status-live"><div class="p-status-dot"></div>Live</div>
+        <button class="platform-btn" onclick="event.preventDefault(); window.open('https://twitter.com','_blank')">Open Live →</button>
+      </a>
+      <a class="platform-card" href="https://instagram.com" target="_blank" style="--p-color:#e1306c">
+        <div class="platform-logo" style="background:rgba(225,48,108,0.1)">
+          <svg viewBox="0 0 24 24" fill="url(#igGrad)">
+            <defs><linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs>
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+          </svg>
+        </div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-status status-live"><div class="p-status-dot"></div>Live</div>
+        <button class="platform-btn" onclick="event.preventDefault(); window.open('https://instagram.com','_blank')">Open Live →</button>
+      </a>
+      <a class="platform-card" href="https://facebook.com/live" target="_blank" style="--p-color:#1877f2">
+        <div class="platform-logo" style="background:rgba(24,119,242,0.1)">
+          <svg viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </div>
+        <div class="platform-name">Facebook</div>
+        <div class="platform-status status-live"><div class="p-status-dot"></div>Live</div>
+        <button class="platform-btn" onclick="event.preventDefault(); window.open('https://facebook.com/live','_blank')">Open Live →</button>
+      </a>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="about-section" style="animation: fadeUp 0.6s 0.15s ease both">
+    <div class="about-glow"></div>
+    <div class="about-grid">
+      <div>
+        <div class="about-eyebrow">// About</div>
+        <div class="about-title">Real-Time <em>Toxic</em><br>Detection Engine</div>
+        <p class="about-desc">A browser extension powered by <strong style="color:var(--purple3)">DistilBERT</strong> that scans live comments across all major streaming and social platforms in real time. Every comment is analyzed locally on your device — no data leaves your browser.</p>
+        <p class="about-desc">Built for content creators, community managers, and platform moderators who need instant, accurate toxicity filtering without latency or privacy trade-offs.</p>
+        <div class="about-tags">
+          <span class="tag tag-purple">DistilBERT NLP</span>
+          <span class="tag tag-green">On-Device Inference</span>
+          <span class="tag tag-cyan">Browser Extension</span>
+          <span class="tag tag-amber">Real-Time &lt;12ms</span>
+          <span class="tag tag-purple">4 Platforms</span>
+          <span class="tag tag-green">98% Accuracy</span>
+        </div>
+      </div>
+      <div class="about-features">
+        <div class="feature-row"><div class="feature-icon" style="background:rgba(124,58,237,0.15)">🧠</div><div><div class="feature-title">DistilBERT Transformer Model</div><div class="feature-desc">Fine-tuned on 1.2M+ toxic comment samples. Runs entirely in-browser via ONNX runtime.</div></div></div>
+        <div class="feature-row"><div class="feature-icon" style="background:rgba(34,197,94,0.1)">⚡</div><div><div class="feature-title">Sub-12ms Inference</div><div class="feature-desc">Comments are classified before they finish rendering. Zero perceived delay.</div></div></div>
+        <div class="feature-row"><div class="feature-icon" style="background:rgba(6,182,212,0.1)">🔌</div><div><div class="feature-title">Cross-Platform Integration</div><div class="feature-desc">Works on YouTube, Twitter/X, Instagram, and Facebook via content script injection.</div></div></div>
+        <div class="feature-row"><div class="feature-icon" style="background:rgba(245,158,11,0.1)">🛡️</div><div><div class="feature-title">Privacy-First Architecture</div><div class="feature-desc">All processing happens locally. No comment data is transmitted or stored anywhere.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WRITE A REVIEW -->
+  <div class="reviews-section" id="reviews" style="margin-bottom:40px">
+    <div class="section-title">Write a Review</div>
+    <div class="section-sub">Share your experience with the community</div>
+    <div id="reviews-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px"></div>
+    <div class="add-review-form open" id="review-form">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Your Name</label><input class="form-input" id="rv-name" placeholder="e.g. Alex Johnson" type="text"></div>
+        <div class="form-field"><label class="form-label">Role / Platform</label><input class="form-input" id="rv-role" placeholder="e.g. YouTube Creator" type="text"></div>
+      </div>
+      <div class="form-field" style="margin-bottom:16px">
+        <label class="form-label">Rating</label>
+        <div class="star-picker"><span class="star-pick" onclick="setRating(1)">★</span><span class="star-pick" onclick="setRating(2)">★</span><span class="star-pick" onclick="setRating(3)">★</span><span class="star-pick" onclick="setRating(4)">★</span><span class="star-pick" onclick="setRating(5)">★</span></div>
+      </div>
+      <div class="form-field" style="margin-bottom:20px">
+        <label class="form-label">Your Review</label>
+        <textarea class="form-textarea" id="rv-text" placeholder="Tell us about your experience..."></textarea>
+      </div>
+      <button class="submit-review-btn" onclick="submitReview()">Submit Review →</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-copy">© 2025 LiveStream Moderation Engine · Built with DistilBERT</div>
+  <div class="footer-links">
+    <a class="footer-link" href="#">Documentation</a>
+    <a class="footer-link" href="#">GitHub</a>
+    <a class="footer-link" href="#">Privacy Policy</a>
+    <a class="footer-link" href="#">Contact</a>
+    <a class="footer-link" href="#">@copyright</a>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const name = localStorage.getItem('lsm_user') || 'User';
+  document.getElementById('dash-username').textContent = name;
+  document.getElementById('dash-avatar').textContent = name[0].toUpperCase();
+});
+
+let selectedRating = 0;
+function setRating(n) {
+  selectedRating = n;
+  document.querySelectorAll('.star-pick').forEach((s, i) => s.classList.toggle('selected', i < n));
+}
+
+function submitReview() {
+  const name = document.getElementById('rv-name').value.trim();
+  const role = document.getElementById('rv-role').value.trim();
+  const text = document.getElementById('rv-text').value.trim();
+  if (!name || !text || !selectedRating) { alert('Please fill in your name, write a review, and select a rating.'); return; }
+  const colors = ['#7c3aed','#0077b5','#e1306c','#10b981','#f59e0b','#06b6d4'];
+  const col = colors[Math.floor(Math.random() * colors.length)];
+  const stars = Array.from({length:5}, (_,i) => `<span class="review-star ${i < selectedRating ? 'filled' : ''}" style="${i >= selectedRating ? 'color:var(--text3)' : ''}">★</span>`).join('');
+  const date = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.style.animation = 'fadeUp 0.5s ease both';
+  card.innerHTML = `<div class="review-top"><div class="reviewer-avatar" style="background:${col}">${name[0].toUpperCase()}</div><div><div class="reviewer-name">${name}</div><div class="reviewer-role">${role || 'Community Member'}</div></div></div><div class="review-stars">${stars}</div><div class="review-text">"${text}"</div><div class="review-date">${date}</div>`;
+  document.getElementById('reviews-grid').prepend(card);
+  document.getElementById('rv-name').value = '';
+  document.getElementById('rv-role').value = '';
+  document.getElementById('rv-text').value = '';
+  setRating(0);
+}
+</script>
+</body>
+</html>
